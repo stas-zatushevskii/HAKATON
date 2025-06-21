@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.contrib.postgres.fields import JSONField  # если используешь PostgreSQL
 
 
 class Teacher(models.Model):
@@ -23,10 +22,13 @@ class Task(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField(null=True, blank=True)
-    solution = models.JSONField(default=dict)
+    solution = models.CharField(default=dict)
+    sample = models.TextField(default=dict)
+
 
 
 class TaskAssignment(models.Model):
+    name = models.CharField(max_length=120) # unique name for each solution from student, will form like this - task_id+task_name+student_id
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=[
