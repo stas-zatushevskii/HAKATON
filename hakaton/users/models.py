@@ -4,12 +4,11 @@ from django.db import models
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    username = models.CharField(null=True, blank=True)
+    username = models.CharField(max_length=120, null=True, blank=True)
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
-    username = models.CharField(null=True, blank=True)
+    username = models.CharField(max_length=120, null=True, blank=True)
 
 class TaskType(models.Model):
     name = models.CharField(max_length=120)
@@ -24,8 +23,7 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField(null=True, blank=True)
     solution = models.CharField(max_length=500, default="")
-    sample = models.CharField(max_length=500, default="")
-    sample = models.FileField(upload_to='sample/')
+    sample = models.CharField(max_length=10000, default="")
 
 
 class TaskAssignment(models.Model):

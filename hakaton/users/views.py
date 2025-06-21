@@ -1,11 +1,13 @@
-import openai
+from openai import OpenAI
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt  # если используешь POST без CSRF-токена
 from django.views.decorators.http import require_http_methods
+from django.shortcuts import render
+from django.conf import settings
 
-# Обязательно настрой свой API-ключ через переменные окружения или Django settings
-openai.api_key = ""
+# Initialize OpenAI client with API key
+client = OpenAI(api_key="")
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -46,8 +48,8 @@ def generate_learning_plan(request):
 Начни с самого базового и двигайся к сложному.
 """
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5",
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Ты ассистент по обучению с уклоном в структурированные пошаговые планы."},
                 {"role": "user", "content": prompt}
@@ -56,13 +58,31 @@ def generate_learning_plan(request):
             max_tokens=1500
         )
 
-        result_text = response['choices'][0]['message']['content']
+        result_text = response.choices[0].message.content
+
+        # Clean the response text to remove markdown formatting
+        cleaned_text = result_text.strip()
+        
+        if cleaned_text.startswith("```json"):
+            cleaned_text = cleaned_text[7:]
+        elif cleaned_text.startswith("json"):
+            cleaned_text = cleaned_text[4:]
+        
+        if cleaned_text.endswith("```"):
+            cleaned_text = cleaned_text[:-3]
+        
+        cleaned_text = cleaned_text.strip()
 
         try:
-            learning_steps = json.loads(result_text)
+            learning_steps = json.loads(cleaned_text)
             return JsonResponse({"success": True, "data": learning_steps}, status=200, json_dumps_params={'ensure_ascii': False, 'indent': 2})
         except json.JSONDecodeError:
-            return JsonResponse({"success": False, "error": "Ошибка при парсинге JSON из ответа OpenAI", "raw": result_text}, status=500)
+            return JsonResponse({"success": False, "error": "Ошибка при парсинге JSON из ответа OpenAI", "raw": result_text, "cleaned": cleaned_text}, status=500)
 
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=400)
+
+# Test view with failsafes for HTML interface
+def test_learning_plan_view(request):
+    """HTML view to test the learning plan generation with failsafes"""
+    return render(request, 'learning_plan_test.html')
