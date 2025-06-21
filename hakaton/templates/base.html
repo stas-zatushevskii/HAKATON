@@ -26,14 +26,18 @@
                 <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 7-7 7 7 0 0 1-7 7Z"/>
                 </svg>
-                <div class="user-dropdown">
-                    <svg class="icon dropdown-toggle" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
-                    <div class="dropdown-menu">
-                        <a href="{% url 'login' %}" class="dropdown-item">Login</a>
-                        <a href="{% url 'register' %}" class="dropdown-item">Register</a>
-                    </div>
+                <div class="auth-container">
+                    {% if user.is_authenticated %}
+                        <div class="user-profile">
+                            <span class="user-name">{{ user.username }}</span>
+                            <a href="{% url 'logout' %}" class="auth-btn login-btn">Logout</a>
+                        </div>
+                    {% else %}
+                        <div class="auth-buttons">
+                            <a href="{% url 'login' %}" class="auth-btn login-btn">Login</a>
+                            <a href="{% url 'register' %}" class="auth-btn register-btn">Register</a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -43,92 +47,53 @@
     {% endblock %}
 
     <style>
-        /* User Dropdown Styles */
-        .user-dropdown {
-            position: relative;
-            display: inline-block;
+        .auth-container {
+            display: flex;
+            align-items: center;
         }
 
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: rgba(15, 32, 39, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            min-width: 120px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
         }
 
-        .user-dropdown:hover .dropdown-menu {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .dropdown-item {
-            display: block;
-            padding: 0.75rem 1rem;
-            color: #ffffff;
-            text-decoration: none;
+        .auth-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
             font-weight: 500;
-            font-size: 0.9rem;
+            text-decoration: none;
             transition: all 0.3s ease;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
-
-        .dropdown-item:hover {
-            background: rgba(96, 239, 255, 0.1);
+        .login-btn {
+            background: transparent;
             color: #60efff;
+            border: 1px solid #60efff;
         }
 
-        .dropdown-toggle {
-            cursor: pointer;
+        .login-btn:hover {
+            background: rgba(96, 239, 255, 0.1);
+        }
+
+        .register-btn {
+            background: #60efff;
+            color: #0f2027;
+        }
+
+        .register-btn:hover {
+            background: #4cd9ff;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #ffffff;
+        }
+
+        .user-name {
+            font-weight: 500;
         }
     </style>
-
-    <script>
-        // Optional: Add click functionality for mobile/touch devices
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdown = document.querySelector('.user-dropdown');
-            const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
-            const dropdownMenu = dropdown.querySelector('.dropdown-menu');
-
-            // Toggle dropdown on click for mobile devices
-            dropdownToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                if (dropdownMenu.style.opacity === '1') {
-                    dropdownMenu.style.opacity = '0';
-                    dropdownMenu.style.visibility = 'hidden';
-                    dropdownMenu.style.transform = 'translateY(-10px)';
-                } else {
-                    dropdownMenu.style.opacity = '1';
-                    dropdownMenu.style.visibility = 'visible';
-                    dropdownMenu.style.transform = 'translateY(0)';
-                }
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!dropdown.contains(e.target)) {
-                    dropdownMenu.style.opacity = '0';
-                    dropdownMenu.style.visibility = 'hidden';
-                    dropdownMenu.style.transform = 'translateY(-10px)';
-                }
-            });
-        });
-    </script>
 </body>
 </html>
