@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Learning Plan Generator{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1000px; margin: 2rem auto; padding: 0 2rem;">
+    <div class="hero-content" style="text-align: center; margin-bottom: 3rem;">
+        <h1 class="main-title" style="font-size: 2.5rem; margin-bottom: 1rem;">
+            <span class="title-debug">Learning Plan</span> 
+            <span class="title-practical">Generator</span> 
+            <span class="title-codebases">Test</span>
+        </h1>
+        <p class="subtitle">Test the OpenAI learning plan generation with real-time feedback</p>
+    </div>
+
+    <!-- Connection Status Indicator -->
+    <div id="connection-status" class="status-indicator" style="text-align: center; margin-bottom: 2rem;">
+        <div class="status-badge disconnected">
+            <span class="status-dot"></span>
+            <span class="status-text">Ready to test</span>
+        </div>
+    </div>
+
+    <!-- Test Form -->
+    <div class="test-form-container" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+        <form id="learning-plan-form">
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="topic" style="display: block; margin-bottom: 0.5rem; color: #b0c4de; font-weight: 600;">Topic:</label>
+                <input type="text" id="topic" name="topic" placeholder="e.g., JavaScript Basics, Machine Learning, Django" 
+                       value="JavaScript для начинающих" 
+                       style="width: 100%; padding: 0.75rem; border: 1px solid #444; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="level" style="display: block; margin-bottom: 0.5rem; color: #b0c4de; font-weight: 600;">Level:</label>
+                <select id="level" name="level" style="width: 100%; padding: 0.75rem; border: 1px solid #444; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white;">
+                    <option value="полный новичок">Complete Beginner</option>
+                    <option value="базовый">Basic</option>
+                    <option value="средний">Intermediate</option>
+                    <option value="продвинутый">Advanced</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label for="tone" style="display: block; margin-bottom: 0.5rem; color: #b0c4de; font-weight: 600;">Teaching Style:</label>
+                <select id="tone" name="tone" style="width: 100%; padding: 0.75rem; border: 1px solid #444; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white;">
+                    <option value="дружелюбный, с аналогиями">Friendly with analogies</option>
+                    <option value="академический">Academic</option>
+                    <option value="практический">Practical</option>
+                    <option value="с юмором">With humor</option>
+                </select>
+            </div>
+
+            <button type="submit" id="generate-btn" class="btn-custom btn-primary-custom" 
+                    style="width: 100%; padding: 1rem; font-size: 1.1rem; margin-bottom: 1rem;">
+                Generate Learning Plan
+            </button>
+        </form>
+
+        <!-- Test Options -->
+        <div class="test-options" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+            <button id="test-api-connection" class="btn-custom btn-success-custom" style="flex: 1; min-width: 200px;">
+                Test API Connection
+            </button>
+            <button id="simulate-failure" class="btn-custom" style="flex: 1; min-width: 200px; background: #ff6b6b;">
+                Simulate API Failure
+            </button>
+            <button id="clear-results" class="btn-custom" style="flex: 1; min-width: 200px; background: #6c757d;">
+                Clear Results
+            </button>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-section" class="results-container" style="display: none;">
+        <h3 style="color: #00ff87; margin-bottom: 1rem;">Results:</h3>
+        <div id="results-content" style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #00ff87;">
+        </div>
+    </div>
+
+    <!-- Error Section -->
+    <div id="error-section" class="error-container" style="display: none;">
+        <h3 style="color: #ff6b6b; margin-bottom: 1rem;">Error:</h3>
+        <div id="error-content" style="background: rgba(255, 107, 107, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ff6b6b; color: #ffcccb;">
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" style="display: none; text-align: center; margin: 2rem 0;">
+        <div class="spinner" style="border: 4px solid #444; border-top: 4px solid #00ff87; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        <p style="margin-top: 1rem; color: #b0c4de;">Generating learning plan...</p>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.status-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.status-badge.connected {
+    background: rgba(0, 255, 135, 0.2);
+    border: 1px solid #00ff87;
+}
+
+.status-badge.disconnected {
+    background: rgba(255, 107, 107, 0.2);
+    border: 1px solid #ff6b6b;
+}
+
+.status-badge.testing {
+    background: rgba(96, 239, 255, 0.2);
+    border: 1px solid #60efff;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+.connected .status-dot {
+    background: #00ff87;
+}
+
+.disconnected .status-dot {
+    background: #ff6b6b;
+}
+
+.testing .status-dot {
+    background: #60efff;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.learning-step {
+    background: rgba(255, 255, 255, 0.05);
+    margin: 1rem 0;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #00ff87;
+}
+
+.step-header {
+    color: #00ff87;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.step-content {
+    color: #b0c4de;
+    line-height: 1.6;
+}
+
+.step-content ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.step-content li {
+    margin: 0.25rem 0;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('learning-plan-form');
+    const generateBtn = document.getElementById('generate-btn');
+    const testApiBtn = document.getElementById('test-api-connection');
+    const simulateFailureBtn = document.getElementById('simulate-failure');
+    const clearResultsBtn = document.getElementById('clear-results');
+    const statusIndicator = document.getElementById('connection-status');
+    const resultsSection = document.getElementById('results-section');
+    const errorSection = document.getElementById('error-section');
+    const loadingIndicator = document.getElementById('loading-indicator');
+
+    // Update status indicator
+    function updateStatus(status, message) {
+        const badge = statusIndicator.querySelector('.status-badge');
+        const text = statusIndicator.querySelector('.status-text');
+        
+        badge.className = `status-badge ${status}`;
+        text.textContent = message;
+    }
+
+    // Show loading state
+    function showLoading() {
+        loadingIndicator.style.display = 'block';
+        resultsSection.style.display = 'none';
+        errorSection.style.display = 'none';
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+        updateStatus('testing', 'Connecting to OpenAI...');
+    }
+
+    // Hide loading state
+    function hideLoading() {
+        loadingIndicator.style.display = 'none';
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate Learning Plan';
+    }
+
+    // Show results
+    function showResults(data) {
+        hideLoading();
+        errorSection.style.display = 'none';
+        resultsSection.style.display = 'block';
+        
+        if (data.success && data.data) {
+            updateStatus('connected', 'API Working - Plan Generated!');
+            displayLearningPlan(data.data);
+        } else {
+            updateStatus('disconnected', 'API Error');
+            showError(data.error || 'Unknown error occurred');
+        }
+    }
+
+    // Show error
+    function showError(error) {
+        hideLoading();
+        resultsSection.style.display = 'none';
+        errorSection.style.display = 'block';
+        document.getElementById('error-content').innerHTML = `
+            <p><strong>Error Details:</strong></p>
+            <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; overflow-x: auto;">${error}</pre>
+            <p style="margin-top: 1rem;"><strong>Possible Solutions:</strong></p>
+            <ul>
+                <li>Check if OpenAI API key is set correctly</li>
+                <li>Verify internet connection</li>
+                <li>Check OpenAI API quota/billing</li>
+                <li>Try again in a few moments</li>
+            </ul>
+        `;
+        updateStatus('disconnected', 'Connection Failed');
+    }
+
+    // Display learning plan
+    function displayLearningPlan(steps) {
+        const content = document.getElementById('results-content');
+        let html = '<h4 style="color: #00ff87; margin-bottom: 1rem;">📚 Generated Learning Plan</h4>';
+        
+        if (Array.isArray(steps)) {
+            steps.forEach(step => {
+                html += `
+                    <div class="learning-step">
+                        <div class="step-header">
+                            Step ${step.step_number}: ${step.title}
+                        </div>
+                        <div class="step-content">
+                            <p><strong>Description:</strong> ${step.description}</p>
+                            
+                            ${step.theory_summary ? `
+                                <p><strong>Theory:</strong></p>
+                                <ul>
+                                    ${step.theory_summary.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            
+                            ${step.exercises ? `
+                                <p><strong>Exercises:</strong></p>
+                                <ul>
+                                    ${step.exercises.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            
+                            ${step.expected_skill ? `
+                                <p><strong>Expected Skill:</strong> ${step.expected_skill}</p>
+                            ` : ''}
+                            
+                            ${step.analogy ? `
+                                <p><strong>Analogy:</strong> ${step.analogy}</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            html += `<pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(steps, null, 2)}</pre>`;
+        }
+        
+        content.innerHTML = html;
+    }
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = {
+            topic: formData.get('topic'),
+            level: formData.get('level'),
+            tone: formData.get('tone')
+        };
+
+        showLoading();
+
+        // FAILSAFE: Timeout after 30 seconds
+        const timeout = setTimeout(() => {
+            hideLoading();
+            showError('Request timeout - API took too long to respond (>30s)');
+        }, 30000);
+
+        fetch('/learning/generate-plan/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            clearTimeout(timeout);
+            return response.json();
+        })
+        .then(data => {
+            showResults(data);
+        })
+        .catch(error => {
+            clearTimeout(timeout);
+            console.error('Error:', error);
+            showError(`Network Error: ${error.message}`);
+        });
+    });
+
+    // Test API connection
+    testApiBtn.addEventListener('click', function() {
+        showLoading();
+        updateStatus('testing', 'Testing API connection...');
+        
+        const testData = {
+            topic: "Test Connection",
+            level: "полный новичок",
+            tone: "дружелюбный"
+        };
+
+        fetch('/learning/generate-plan/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(testData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                updateStatus('connected', 'API Connection Successful!');
+                showResults({success: true, data: [{
+                    step_number: 1,
+                    title: "API Test Successful",
+                    description: "The connection to OpenAI API is working correctly",
+                    theory_summary: ["API is responding", "Authentication is valid"],
+                    exercises: ["Connection test passed"],
+                    expected_skill: "Confirmed API functionality",
+                    analogy: "Like successfully calling a friend - the line is clear!"
+                }]});
+            } else {
+                updateStatus('disconnected', 'API Test Failed');
+                showError(data.error);
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            updateStatus('disconnected', 'Connection Test Failed');
+            showError(`Connection test failed: ${error.message}`);
+        });
+    });
+
+    // Simulate failure
+    simulateFailureBtn.addEventListener('click', function() {
+        showLoading();
+        updateStatus('testing', 'Simulating failure...');
+        
+        setTimeout(() => {
+            hideLoading();
+            showError('Simulated API failure for testing purposes. This is not a real error.');
+        }, 2000);
+    });
+
+    // Clear results
+    clearResultsBtn.addEventListener('click', function() {
+        resultsSection.style.display = 'none';
+        errorSection.style.display = 'none';
+        updateStatus('disconnected', 'Ready to test');
+    });
+});
+</script>
+{% endblock %}
