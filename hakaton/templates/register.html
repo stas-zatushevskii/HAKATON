@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="hero-content">
+        <h1 class="main-title">
+            <span class="title-debug">Register</span>
+        </h1>
+        
+        <form method="post" action="{% url 'register' %}" class="register-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="text" name="username" class="form-control" placeholder="Username" required>
+            </div>
+            <div class="form-group">
+                <input type="email" name="email" class="form-control" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password1" class="form-control" placeholder="Password" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password2" class="form-control" placeholder="Confirm Password" required>
+            </div>
+            {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+            {% endif %} 
+            <div class="cta-buttons">
+                <button type="submit" class="btn-custom btn-success-custom">Create Account</button>
+            </div>
+            <div class="login-link">
+                <p>Already have an account? <a href="{% url 'login' %}" class="link-highlight">Login here</a></p>
+            </div>
+        </form>
+    </div>
+</section>
+
+<style>
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    width: 100%;
+    max-width: 300px;
+    padding: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(15, 32, 39, 0.8);
+    color: white;
+    margin: 0 auto;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #00ff87;
+    box-shadow: 0 0 10px rgba(0, 255, 135, 0.3);
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.alert-danger {
+    color: #ff006e;
+    background: rgba(255, 0, 110, 0.1);
+    border: 1px solid rgba(255, 0, 110, 0.3);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+}
+
+.login-link {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.login-link p {
+    color: #b0c4de;
+    font-size: 0.9rem;
+}
+
+.link-highlight {
+    color: #60efff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.link-highlight:hover {
+    color: #00ff87;
+    text-shadow: 0 0 10px rgba(0, 255, 135, 0.3);
+}
+</style>
+{% endblock %}
