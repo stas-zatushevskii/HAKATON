@@ -3,13 +3,14 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt  # если используешь POST без CSRF-токена
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.conf import settings
 
 # Initialize OpenAI client with API key
 client = OpenAI(api_key="")
 
-@csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 def generate_learning_plan(request):
     try:
@@ -99,6 +100,7 @@ def generate_learning_plan(request):
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=400)
 
+@login_required
 def test_learning_plan_view(request):
     """HTML view to test the learning plan generation with failsafes"""
     return render(request, 'learning_plan_test.html')

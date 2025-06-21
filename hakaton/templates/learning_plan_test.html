@@ -24,6 +24,7 @@
     <!-- Test Form -->
     <div class="test-form-container" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
         <form id="learning-plan-form">
+            {% csrf_token %}
             <div class="form-group" style="margin-bottom: 1.5rem;">
                 <label for="topic" style="display: block; margin-bottom: 0.5rem; color: #b0c4de; font-weight: 600;">Topic:</label>
                 <input type="text" id="topic" name="topic" placeholder="e.g., JavaScript Basics, Machine Learning, Django" 
