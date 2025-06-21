@@ -82,7 +82,6 @@ def generate_learning_plan(request):
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=400)
 
-# Test view with failsafes for HTML interface
 def test_learning_plan_view(request):
     """HTML view to test the learning plan generation with failsafes"""
     return render(request, 'learning_plan_test.html')
