@@ -1,5 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Hello World</h1>
+<section class="hero-section">
+    <div class="hero-content">
+        <h1 class="main-title">
+            <span class="title-debug">DEBUG</span> 
+            <span class="title-practical">PRACTICAL</span> 
+            <span class="title-codebases">CODEBASES</span>
+        </h1>
+        
+        <div class="subtitle-container">
+            <p class="subtitle">
+                Challenge yourself with <span class="highlight-red">real-world</span> bugs
+            </p>
+            <p class="subtitle">
+                Trace production errors
+            </p>
+            <p class="subtitle">
+                Sharpen skills on <span class="highlight-blue">authentic</span> software projects
+            </p>
+        </div>
+
+        <div class="cta-buttons">
+            <a href="#" class="btn-custom btn-primary-custom">View Problems</a>
+            <a href="#" class="btn-custom btn-success-custom">Create Task</a>
+        </div>
+    </div>
+</section>
 {% endblock %}

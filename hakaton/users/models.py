@@ -22,8 +22,8 @@ class Task(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField(null=True, blank=True)
-    solution = models.CharField(default=dict)
-    sample = models.TextField(default=dict)
+    solution = models.CharField(max_length=500, default="")
+    sample = models.CharField(max_length=500, default="")
 
 
 
