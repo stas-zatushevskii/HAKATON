@@ -1,13 +1,39 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debugger</title>
+    <title>{% block title %}DebugHub{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem;">
+            <a href="{% url 'index' %}" class="navbar-brand">
+                <img src="{% static 'images/logo.png' %}" alt="DebugHub" class="logo">
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="{% url 'index' %}" class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">Home</a></li>
+                <li><a href="#" class="">Problems</a></li>
+                <li><a href="#" class="">Create</a></li>
+            </ul>
+            
+            <div class="nav-icons">
+                <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 7-7 7 7 0 0 1-7 7Z"/>
+                </svg>
+                <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+            </div>
+        </div>
+    </nav>
+
     {% block content %}
-    
     {% endblock %}
 </body>
 </html>
