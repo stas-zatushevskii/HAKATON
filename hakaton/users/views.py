@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt  # если использ�
 from django.views.decorators.http import require_http_methods
 
 # Обязательно настрой свой API-ключ через переменные окружения или Django settings
-openai.api_key = "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"
+openai.api_key = ""
 
 @csrf_exempt
 @require_http_methods(["POST"])
