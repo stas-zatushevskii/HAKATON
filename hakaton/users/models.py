@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
-class Teacher(models.Model):
+class Moderator(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     username = models.CharField(null=True, blank=True)
 
@@ -17,7 +17,7 @@ class TaskType(models.Model):
 
 class Task(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    author = models.ForeignKey(Moderator, on_delete=models.CASCADE, blank=True)
     task_type = models.ForeignKey(TaskType, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=120)
     description = models.TextField()
