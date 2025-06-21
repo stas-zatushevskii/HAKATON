@@ -23,12 +23,12 @@ class Task(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField(null=True, blank=True)
+    solution = models.JSONField(default=dict)
 
 
 class TaskAssignment(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    solution = models.JSONField(default=dict)
     status = models.CharField(max_length=20, choices=[
         ("pending", "Ожидает"),
         ("submitted", "Отправлено"),
