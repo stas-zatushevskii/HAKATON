@@ -307,12 +307,14 @@ body::before {
 
 .auth-container {
     display: flex;
+    justify-content: center;
     align-items: center;
+    height: 100vh;
 }
 
 .auth-buttons {
     display: flex;
-    gap: 1rem;
+    gap: 2rem;
 }
 
 .auth-btn {
@@ -345,7 +347,6 @@ body::before {
 .user-profile {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
     color: #ffffff;
 }
 

@@ -43,7 +43,6 @@
         </form>
     </div>
 
-    <!-- Step 2: Select Learning Step -->
     <div id="learning-steps-section" class="section-card" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; display: none;">
         <h2 style="color: #60efff; margin-bottom: 1.5rem;">Step 2: Select Learning Step for Challenge</h2>
         <div id="learning-steps-container"></div>
@@ -310,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const stepCard = document.createElement('div');
             stepCard.className = 'learning-step-card';
             stepCard.innerHTML = `
-                <div class="step-title">Step ${step.step_number}: ${step.title}</div>
+                <div class="step-title">Challenge ${step.step_number}: ${step.title}</div>
                 <div class="step-description">${step.description}</div>
                 <div class="step-task">
                     <strong>Practical Task:</strong> ${step.practical_task?.task_description || 'No task specified'}
