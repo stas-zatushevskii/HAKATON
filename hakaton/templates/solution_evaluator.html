@@ -1,0 +1,505 @@
+{% extends 'base.html' %}
+
+{% block title %}Solution Evaluator - DebugHub{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 2rem auto; padding: 0 2rem;">
+    <div class="hero-content" style="text-align: center; margin-bottom: 3rem;">
+        <h1 class="main-title" style="font-size: 2.5rem; margin-bottom: 1rem;">
+            <span class="title-debug">Solution</span> 
+            <span class="title-practical">Evaluator</span>
+        </h1>
+        <p class="subtitle">Submit your code solutions and get AI-powered feedback</p>
+    </div>
+
+    <!-- Challenge Selection -->
+    <div class="section-card" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h2 style="color: #00ff87; margin-bottom: 1.5rem;">Select a Challenge</h2>
+          <div class="challenge-selector">
+            <select id="challenge-select" class="custom-select">
+                <option value="">Select a challenge...</option>
+                {% for challenge in challenges %}
+                <option value="{{ challenge.id }}" 
+                        data-title="{{ challenge.title }}" 
+                        data-description="{{ challenge.description }}"
+                        data-sample-input="{{ challenge.sample_input }}"
+                        data-sample-output="{{ challenge.sample_output }}"
+                        data-difficulty="{{ challenge.difficulty }}">
+                    {{ challenge.title }} ({{ challenge.get_difficulty_display }})
+                </option>
+                {% endfor %}
+            </select>
+            
+            <div id="challenge-info" style="display: none; background: rgba(96, 239, 255, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #60efff;">
+                <h3 id="challenge-title" style="color: #60efff; margin-bottom: 0.5rem;"></h3>
+                <div id="challenge-description" style="color: #b0c4de; margin-bottom: 1rem;"></div>
+                
+                <div id="sample-io" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <h4 style="color: #60efff; margin-bottom: 0.5rem;">Sample Input:</h4>
+                            <div id="sample-input" class="code-block" style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 6px; font-family: 'Courier New', monospace; color: #00ff87;"></div>
+                        </div>
+                        <div>
+                            <h4 style="color: #60efff; margin-bottom: 0.5rem;">Sample Output:</h4>
+                            <div id="sample-output" class="code-block" style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 6px; font-family: 'Courier New', monospace; color: #00ff87;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solution Submission -->
+    <div id="solution-section" class="section-card" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; display: none;">
+        <h2 style="color: #60efff; margin-bottom: 1.5rem;">Submit Your Solution</h2>
+        
+        <form id="solution-form">
+            {% csrf_token %}            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="language" style="display: block; margin-bottom: 0.5rem; color: #b0c4de; font-weight: 600;">Programming Language:</label>
+                <select id="language" name="language" class="custom-select">
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="c">C</option>
+                </select>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="solution-file" style="display: block; margin-bottom: 0.5rem; color: #b0c4de; font-weight: 600;">Upload Your Solution:</label>
+                <div class="file-upload-container" style="position: relative;">
+                    <input type="file" id="solution-file" name="solution-file" accept=".py,.js,.java,.cpp,.c,.txt" 
+                           style="width: 100%; padding: 1rem; border: 1px solid #444; border-radius: 8px; background: rgba(0, 0, 0, 0.3); color: white; cursor: pointer;">
+                    <div class="file-info" style="margin-top: 0.5rem; color: #b0c4de; font-size: 0.875rem;">
+                        Supported formats: .py, .js, .java, .cpp, .c, .txt
+                    </div>
+                </div>
+                
+                <!-- Preview area for uploaded file -->
+                <div id="file-preview" style="display: none; margin-top: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #b0c4de; font-weight: 600;">File Preview:</label>
+                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid #444; border-radius: 8px; padding: 1rem; max-height: 300px; overflow-y: auto;">
+                        <pre id="file-content" style="margin: 0; color: white; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-word;"></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-custom btn-success-custom" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                Evaluate Solution
+            </button>
+        </form>
+    </div>
+
+    <!-- Evaluation Results -->
+    <div id="evaluation-section" class="section-card" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; display: none;">
+        <h2 style="color: #fbbf24; margin-bottom: 1.5rem;">Evaluation Results</h2>
+        <div id="evaluation-content"></div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" style="display: none; text-align: center; margin: 2rem 0;">
+        <div class="spinner" style="border: 4px solid #444; border-top: 4px solid #00ff87; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        <p style="margin-top: 1rem; color: #b0c4de;">Evaluating solution...</p>
+    </div>
+
+    <!-- Error Section -->
+    <div id="error-section" class="error-container" style="display: none;">
+        <h3 style="color: #ff6b6b; margin-bottom: 1rem;">Error:</h3>
+        <div id="error-content" style="background: rgba(255, 107, 107, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ff6b6b; color: #ffcccb;">
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.code-block {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.score-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.score-high {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid #22c55e;
+}
+
+.score-medium {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+    border: 1px solid #fbbf24;
+}
+
+.score-low {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid #ef4444;
+}
+
+.feedback-section {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.feedback-section h4 {
+    color: #60efff;
+    margin-bottom: 0.5rem;
+}
+
+.file-upload-container input[type="file"] {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px dashed #444;
+    padding: 2rem 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.file-upload-container input[type="file"]:hover {
+    border-color: #60efff;
+    background: rgba(96, 239, 255, 0.05);
+}
+
+.file-upload-container input[type="file"]:focus {
+    outline: none;
+    border-color: #60efff;
+    box-shadow: 0 0 0 2px rgba(96, 239, 255, 0.1);
+}
+
+/* Custom Select Dropdown Styling */
+.custom-select {
+    width: 100%;
+    padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360efff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+
+.custom-select:hover {
+    border-color: #60efff;
+    background-color: rgba(96, 239, 255, 0.05);
+    box-shadow: 0 2px 8px rgba(96, 239, 255, 0.1);
+}
+
+.custom-select:focus {
+    outline: none;
+    border-color: #60efff;
+    background-color: rgba(96, 239, 255, 0.1);
+    box-shadow: 0 0 0 2px rgba(96, 239, 255, 0.2), 0 2px 8px rgba(96, 239, 255, 0.15);
+}
+
+.custom-select option {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 0.5rem;
+    border: none;
+}
+
+.custom-select option:hover,
+.custom-select option:focus {
+    background-color: rgba(96, 239, 255, 0.2);
+    color: #60efff;
+}
+
+.custom-select option:checked {
+    background-color: #60efff;
+    color: #1a1a1a;
+}
+
+/* Enhanced dropdown for better visibility */
+.custom-select option[value=""] {
+    color: #b0c4de;
+    font-style: italic;
+}
+
+/* Fix for webkit browsers */
+@supports (-webkit-appearance: none) {
+    .custom-select {
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360efff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    }
+}
+
+/* Additional responsive and accessibility improvements */
+.custom-select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.custom-select:invalid {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3);
+}
+
+/* Smooth transitions for all interactions */
+.custom-select,
+.file-upload-container input[type="file"] {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced focus ring for accessibility */
+.custom-select:focus-visible {
+    outline: 2px solid #60efff;
+    outline-offset: 2px;
+}
+
+/* Better mobile support */
+@media (max-width: 768px) {
+    .custom-select {
+        padding: 1rem 3rem 1rem 1rem;
+        font-size: 1.1rem;
+        background-size: 1.2rem;
+        background-position: right 1rem center;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const challengeSelect = document.getElementById('challenge-select');
+    const challengeInfo = document.getElementById('challenge-info');
+    const solutionSection = document.getElementById('solution-section');
+    const solutionForm = document.getElementById('solution-form');
+    const evaluationSection = document.getElementById('evaluation-section');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const errorSection = document.getElementById('error-section');
+    const errorContent = document.getElementById('error-content');
+    const solutionFile = document.getElementById('solution-file');
+    const filePreview = document.getElementById('file-preview');
+    const fileContent = document.getElementById('file-content');
+      let uploadedFileContent = '';
+
+    // Add visual feedback for dropdown interactions
+    challengeSelect.addEventListener('mousedown', function() {
+        this.style.transform = 'scale(0.98)';
+    });
+
+    challengeSelect.addEventListener('mouseup', function() {
+        this.style.transform = 'scale(1)';
+    });
+
+    challengeSelect.addEventListener('blur', function() {
+        this.style.transform = 'scale(1)';
+    });
+
+    // Handle file upload
+    solutionFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                uploadedFileContent = e.target.result;
+                fileContent.textContent = uploadedFileContent;
+                filePreview.style.display = 'block';
+                
+                // Auto-detect language from file extension
+                const extension = file.name.split('.').pop().toLowerCase();
+                const languageSelect = document.getElementById('language');
+                
+                switch(extension) {
+                    case 'py':
+                        languageSelect.value = 'python';
+                        break;
+                    case 'js':
+                        languageSelect.value = 'javascript';
+                        break;
+                    case 'java':
+                        languageSelect.value = 'java';
+                        break;
+                    case 'cpp':
+                    case 'cc':
+                        languageSelect.value = 'cpp';
+                        break;
+                    case 'c':
+                        languageSelect.value = 'c';
+                        break;
+                    default:
+                        // Keep current selection
+                        break;
+                }
+            };
+            
+            reader.onerror = function() {
+                showError('Error reading file. Please try again.');
+            };
+            
+            reader.readAsText(file);
+        } else {
+            filePreview.style.display = 'none';
+            uploadedFileContent = '';
+        }
+    });    // Handle challenge selection
+    challengeSelect.addEventListener('change', function() {
+        const selectedOption = challengeSelect.options[challengeSelect.selectedIndex];
+        
+        console.log('Challenge selected:', selectedOption.value); // Debug log
+        
+        // Add visual feedback
+        challengeSelect.style.borderColor = '#60efff';
+        setTimeout(() => {
+            challengeSelect.style.borderColor = '';
+        }, 300);
+        
+        if (selectedOption.value) {
+            const title = selectedOption.dataset.title;
+            const description = selectedOption.dataset.description;
+            const sampleInput = selectedOption.dataset.sampleInput;
+            const sampleOutput = selectedOption.dataset.sampleOutput;
+            
+            console.log('Challenge data:', { title, description, sampleInput, sampleOutput }); // Debug log
+            
+            document.getElementById('challenge-title').textContent = title || 'No title';
+            document.getElementById('challenge-description').textContent = description || 'No description';
+            
+            if (sampleInput || sampleOutput) {
+                document.getElementById('sample-input').textContent = sampleInput || 'No sample input';
+                document.getElementById('sample-output').textContent = sampleOutput || 'No sample output';
+                document.getElementById('sample-io').style.display = 'block';
+            } else {
+                document.getElementById('sample-io').style.display = 'none';
+            }
+            
+            challengeInfo.style.display = 'block';
+            solutionSection.style.display = 'block';
+        } else {
+            challengeInfo.style.display = 'none';
+            solutionSection.style.display = 'none';
+        }
+    });
+
+    // Handle solution submission
+    solutionForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const challengeId = challengeSelect.value;
+        const formData = new FormData(solutionForm);
+        
+        if (!challengeId) {
+            showError('Please select a challenge first');
+            return;
+        }
+        
+        if (!uploadedFileContent.trim()) {
+            showError('Please upload a solution file');
+            return;
+        }
+
+        const data = {
+            challenge_id: challengeId,
+            solution: uploadedFileContent,
+            language: formData.get('language')
+        };
+
+        showLoading();
+        hideError();
+
+        fetch('/learning/evaluate-solution/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                displayEvaluation(data.evaluation);
+                evaluationSection.style.display = 'block';
+            } else {
+                showError('Failed to evaluate solution: ' + data.error);
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showError('Error: ' + error.message);
+        });
+    });
+
+    function displayEvaluation(evaluation) {
+        const container = document.getElementById('evaluation-content');
+        const score = parseInt(evaluation.score);
+        const status = evaluation.status;
+        
+        let scoreClass = 'score-low';
+        if (score >= 80) scoreClass = 'score-high';
+        else if (score >= 60) scoreClass = 'score-medium';
+        
+        container.innerHTML = `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div class="score-badge ${scoreClass}">Score: ${score}/100</div>
+                <div style="font-size: 1.2rem; font-weight: 600; margin-top: 0.5rem;">
+                    Status: ${status.charAt(0).toUpperCase() + status.slice(1)}
+                </div>
+            </div>
+            
+            <div class="feedback-section">
+                <h4>Overall Assessment</h4>
+                <p style="color: #b0c4de; line-height: 1.6;">${evaluation.feedback.overall}</p>
+            </div>
+            
+            <div class="feedback-section">
+                <h4>Correctness</h4>
+                <p style="color: #b0c4de; line-height: 1.6;">${evaluation.feedback.correctness}</p>
+            </div>
+            
+            <div class="feedback-section">
+                <h4>Code Quality</h4>
+                <p style="color: #b0c4de; line-height: 1.6;">${evaluation.feedback.code_quality}</p>
+            </div>
+        `;
+    }
+
+    function showLoading() {
+        loadingIndicator.style.display = 'block';
+    }
+
+    function hideLoading() {
+        loadingIndicator.style.display = 'none';
+    }    function showError(message) {
+        errorContent.textContent = message;
+        errorSection.style.display = 'block';
+    }
+
+    function hideError() {
+        errorSection.style.display = 'none';
+    }
+
+    // Auto-select challenge if pre-selected (moved to end to ensure event listeners are attached)
+    {% if selected_challenge %}
+    challengeSelect.value = "{{ selected_challenge.id }}";
+    // Trigger change event to show challenge info
+    challengeSelect.dispatchEvent(new Event('change'));
+    {% endif %}
+});
+</script>
+{% endblock %}

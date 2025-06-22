@@ -25,4 +25,5 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('logout/', views.logout, name='logout'),
     path('learning/', include('users.urls')),
+    path('tasks/', include('tasks.urls')),
 ]

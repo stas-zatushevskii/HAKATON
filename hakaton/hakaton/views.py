@@ -17,9 +17,10 @@ def login(request):
             if user is not None:
                 auth_login(request, user)
                 return redirect('index')  # Redirect to home page after successful login
+            else:
+                messages.error(request, 'Invalid username or password.')
         else:
-            # Form is not valid, errors will be displayed in template
-            pass
+            messages.error(request, 'Invalid username or password.')
     else:
         form = CustomLoginForm()
     

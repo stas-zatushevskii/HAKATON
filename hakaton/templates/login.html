@@ -7,7 +7,7 @@
             <span class="title-debug">Login</span>
         </h1>
         
-        <form method="post" action="{% url 'login' %}" class="login-form">
+        <form method="post" action="{% url 'login' %}" class="auth-form">
             {% csrf_token %}
             <div class="form-group">
                 {{ form.username }}

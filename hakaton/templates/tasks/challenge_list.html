@@ -1,0 +1,513 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load dict_extras %}
+
+{% block title %}Challenges - DebugHub{% endblock %}
+
+{% block content %}
+<div class="challenges-container">
+    <div class="challenges-header">
+        <h1>Programming Challenges</h1>
+        <p>Test your coding skills with these challenges</p>
+        
+        <div class="header-actions">
+            <a href="/learning/challenge-creator/" class="create-btn">
+                <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+                Create Challenge
+            </a>
+            <a href="/learning/solution-evaluator/" class="evaluate-btn">
+                <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+                Evaluate Solution
+            </a>
+        </div>
+    </div>
+    
+    <!-- Search and Filter Section -->
+    <div class="filters-section">
+        <form method="get" class="filters-form">
+            <div class="search-container">
+                <input type="text" name="search" placeholder="Search challenges..." 
+                       value="{{ search_query|default:'' }}" class="search-input">
+                <svg class="search-icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 7-7 7 7 0 0 1-7 7Z"/>
+                </svg>
+            </div>
+            
+            <div class="difficulty-filter">
+                <select name="difficulty" class="difficulty-select">
+                    <option value="">All Difficulties</option>
+                    {% for value, label in difficulties %}
+                        <option value="{{ value }}" {% if difficulty_filter == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="filter-btn">Filter</button>
+        </form>
+    </div>
+    
+    <!-- Challenges Grid -->
+    <div class="challenges-grid">
+        {% for challenge in page_obj %}
+            <div class="challenge-card">
+                <div class="challenge-header">
+                    <h3 class="challenge-title">
+                        <a href="{% url 'tasks:challenge_detail' challenge.pk %}">{{ challenge.title }}</a>
+                        {% if user_submissions and challenge.id in user_submissions %}
+                            <span class="completion-indicator">
+                                <svg class="completed-icon" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                                </svg>
+                            </span>
+                        {% endif %}
+                    </h3>
+                    <div class="badges-container">
+                        <span class="difficulty-badge difficulty-{{ challenge.difficulty }}">
+                            {{ challenge.get_difficulty_display }}
+                        </span>
+                        {% if user_submissions and challenge.id in user_submissions %}
+                            {% with submission=user_submissions|get_item:challenge.id %}
+                                <span class="score-badge">
+                                    {{ submission.score }}/100
+                                </span>
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="challenge-body">
+                    <p class="challenge-description">
+                        {{ challenge.description|truncatewords:20 }}
+                    </p>
+                    
+                    <div class="challenge-meta">
+                        <div class="meta-item">
+                            <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            <span>{{ challenge.points }} points</span>
+                        </div>
+                        
+                        <div class="meta-item">
+                            <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                                <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                            </svg>
+                            <span>{{ challenge.time_limit }} min</span>
+                        </div>
+                    </div>
+                    
+                    {% if challenge.get_tags_list %}
+                        <div class="challenge-tags">
+                            {% for tag in challenge.get_tags_list %}
+                                <span class="tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="challenge-footer">
+                    <small class="created-date">Created {{ challenge.created_at|date:"M d, Y" }}</small>
+                </div>
+            </div>
+        {% empty %}
+            <div class="no-challenges">
+                <h3>No challenges found</h3>
+                <p>Try adjusting your search or filter criteria.</p>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <div class="pagination-container">
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}" 
+                       class="page-link">First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}" 
+                       class="page-link">Previous</a>
+                {% endif %}
+                
+                <span class="page-info">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}" 
+                       class="page-link">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if difficulty_filter %}&difficulty={{ difficulty_filter }}{% endif %}" 
+                       class="page-link">Last</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .challenges-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        min-height: 100vh;
+    }
+    
+    .challenges-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: #ffffff;
+    }
+    
+    .challenges-header h1 {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, #60efff, #0099ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .challenges-header p {
+        font-size: 1.2rem;
+        color: #e0e7ff;
+        opacity: 0.9;
+    }
+    
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .create-btn, .evaluate-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 1px solid;
+    }
+    
+    .create-btn {
+        background: linear-gradient(45deg, #00ff87, #60efff);
+        color: #0f2027;
+        border-color: transparent;
+    }
+    
+    .create-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 255, 135, 0.3);
+    }
+    
+    .evaluate-btn {
+        background: rgba(96, 239, 255, 0.1);
+        color: #60efff;
+        border-color: #60efff;
+    }
+    
+    .evaluate-btn:hover {
+        background: rgba(96, 239, 255, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(96, 239, 255, 0.3);
+    }
+    
+    .create-btn .icon, .evaluate-btn .icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .filters-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .filters-form {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .search-container {
+        position: relative;
+        flex: 1;
+        min-width: 300px;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #e0e7ff;
+        font-size: 1rem;
+    }
+    
+    .search-input::placeholder {
+        color: rgba(224, 231, 255, 0.5);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .difficulty-select {
+        padding: 0.75rem 1rem;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #e0e7ff;
+        font-size: 1rem;
+        min-width: 150px;
+    }
+    
+    .filter-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        background: #60efff;
+        color: #0f2027;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn:hover {
+        background: #4cd9ff;
+        transform: translateY(-2px);
+    }
+    
+    .challenges-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .challenge-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .challenge-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(96, 239, 255, 0.3);
+    }
+    
+    .challenge-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    
+    .badges-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+    
+    .challenge-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .challenge-title a {
+        color: #60efff;
+        text-decoration: none;
+        font-size: 1.25rem;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+    
+    .challenge-title a:hover {
+        color: #4cd9ff;
+    }
+    
+    .completion-indicator {
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .completed-icon {
+        width: 20px;
+        height: 20px;
+        color: #22c55e;
+    }
+    
+    .score-badge {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid #22c55e;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .difficulty-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    
+    .difficulty-easy {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid #22c55e;
+    }
+    
+    .difficulty-medium {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+        border: 1px solid #fbbf24;
+    }
+    
+    .difficulty-hard {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+    
+    .challenge-description {
+        color: #e0e7ff;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    
+    .challenge-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #c7d2fe;
+        font-size: 0.875rem;
+    }
+    
+    .meta-item .icon {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .challenge-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .tag {
+        background: rgba(96, 239, 255, 0.2);
+        color: #60efff;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        border: 1px solid rgba(96, 239, 255, 0.3);
+    }
+    
+    .challenge-footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 1rem;
+    }
+    
+    .created-date {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.875rem;
+    }
+    
+    .no-challenges {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #c7d2fe;
+    }
+    
+    .no-challenges h3 {
+        color: #e0e7ff;
+        margin-bottom: 0.5rem;
+    }
+    
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 1rem 2rem;
+        border-radius: 15px;
+    }
+    
+    .page-link {
+        color: #60efff;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .page-link:hover {
+        background: rgba(96, 239, 255, 0.2);
+    }
+    
+    .page-info {
+        color: #e0e7ff;
+        font-weight: 500;
+    }
+    
+    @media (max-width: 768px) {
+        .challenges-container {
+            padding: 1rem;
+        }
+        
+        .challenges-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filters-form {
+            flex-direction: column;
+        }
+        
+        .search-container {
+            min-width: 100%;
+        }
+    }
+</style>
+{% endblock %} 

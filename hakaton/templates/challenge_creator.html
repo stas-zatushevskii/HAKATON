@@ -1,0 +1,404 @@
+{% extends 'base.html' %}
+
+{% block title %}Challenge Creator - DebugHub{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 2rem auto; padding: 0 2rem;">
+    <div class="hero-content" style="text-align: center; margin-bottom: 3rem;">
+        <h1 class="main-title" style="font-size: 2.5rem; margin-bottom: 1rem;">
+            <span class="title-debug">Challenge</span> 
+            <span class="title-practical">Creator</span>
+        </h1>
+        <p class="subtitle">Create coding challenges from learning plan steps using AI</p>
+    </div>
+
+    <!-- Step 1: Generate Learning Plan -->
+    <div class="section-card" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h2 style="color: #00ff87; margin-bottom: 1.5rem;">Step 1: Generate Learning Plan</h2>
+        
+        <form id="learning-plan-form">
+            {% csrf_token %}
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label for="topic" style="display: block; margin-bottom: 0.5rem; color: #b0c4de; font-weight: 600;">Topic:</label>
+                    <input type="text" id="topic" name="topic" placeholder="e.g., Python Basics, Data Structures" 
+                           value="Python Lists and Loops" 
+                           style="width: 100%; padding: 0.75rem; border: 1px solid #444; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white;">
+                </div>
+                
+                <div class="form-group">
+                    <label for="level" style="display: block; margin-bottom: 0.5rem; color: #b0c4de; font-weight: 600;">Level:</label>
+                    <select id="level" name="level" class="custom-select" style="width: 100%; padding: 0.75rem; border: 1px solid #444; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white;">
+                        <option value="полный новичок">Complete Beginner</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-custom btn-primary-custom" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                Generate Learning Plan
+            </button>
+        </form>
+    </div>
+
+    <!-- Step 2: Select Learning Step -->
+    <div id="learning-steps-section" class="section-card" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; display: none;">
+        <h2 style="color: #60efff; margin-bottom: 1.5rem;">Step 2: Select Learning Step for Challenge</h2>
+        <div id="learning-steps-container"></div>
+    </div>
+
+    <!-- Step 3: Create Challenge -->
+    <div id="challenge-creation-section" class="section-card" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; display: none;">
+        <h2 style="color: #fbbf24; margin-bottom: 1.5rem;">Step 3: Create Challenge</h2>
+        
+        <form id="challenge-form">
+            {% csrf_token %}
+            <div id="selected-step-info" style="background: rgba(96, 239, 255, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #60efff;">
+                <h4 style="color: #60efff; margin-bottom: 0.5rem;">Selected Step:</h4>
+                <div id="selected-step-content"></div>
+            </div>
+            
+            <button type="submit" class="btn-custom btn-success-custom" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                Create Challenge
+            </button>
+        </form>
+    </div>
+
+    <!-- Step 4: Challenge Result -->
+    <div id="challenge-result-section" class="section-card" style="background: rgba(255, 255, 255, 0.05); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; display: none;">
+        <h2 style="color: #22c55e; margin-bottom: 1.5rem;">Challenge Created Successfully!</h2>
+        <div id="challenge-result-content"></div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" style="display: none; text-align: center; margin: 2rem 0;">
+        <div class="spinner" style="border: 4px solid #444; border-top: 4px solid #00ff87; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        <p style="margin-top: 1rem; color: #b0c4de;" id="loading-text">Generating learning plan...</p>
+    </div>
+
+    <!-- Error Section -->
+    <div id="error-section" class="error-container" style="display: none;">
+        <h3 style="color: #ff6b6b; margin-bottom: 1rem;">Error:</h3>
+        <div id="error-content" style="background: rgba(255, 107, 107, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ff6b6b; color: #ffcccb;">
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.section-card {
+    transition: all 0.3s ease;
+}
+
+.learning-step-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.learning-step-card:hover {
+    border-color: #60efff;
+    background: rgba(96, 239, 255, 0.1);
+}
+
+.learning-step-card.selected {
+    border-color: #00ff87;
+    background: rgba(0, 255, 135, 0.1);
+}
+
+.step-title {
+    color: #60efff;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.step-description {
+    color: #b0c4de;
+    margin-bottom: 1rem;
+}
+
+.step-task {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+}
+
+.challenge-preview {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.challenge-title {
+    color: #00ff87;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.challenge-description {
+    color: #b0c4de;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.challenge-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.challenge-tag {
+    background: rgba(96, 239, 255, 0.2);
+    color: #60efff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.test-case {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.code-block {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    color: #00ff87;
+    overflow-x: auto;
+}
+
+.custom-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b0c4de' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+}
+
+.custom-select option {
+    background: #1a1a1a;
+    color: #ffffff;
+    padding: 0.5rem;
+}
+
+.custom-select:focus {
+    outline: none;
+    border-color: #00ff87;
+    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.2);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const learningPlanForm = document.getElementById('learning-plan-form');
+    const challengeForm = document.getElementById('challenge-form');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const loadingText = document.getElementById('loading-text');
+    const errorSection = document.getElementById('error-section');
+    const errorContent = document.getElementById('error-content');
+    
+    let currentLearningPlan = null;
+    let selectedStep = null;
+
+    // Handle learning plan generation
+    learningPlanForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(learningPlanForm);
+        const data = {
+            topic: formData.get('topic'),
+            level: formData.get('level'),
+            tone: 'практический'
+        };
+
+        showLoading('Generating learning plan...');
+        hideError();
+
+        fetch('/learning/generate-plan/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                currentLearningPlan = data.data;
+                displayLearningSteps(data.data);
+                document.getElementById('learning-steps-section').style.display = 'block';
+            } else {
+                showError('Failed to generate learning plan: ' + data.error);
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showError('Error: ' + error.message);
+        });
+    });
+
+    // Handle challenge creation
+    challengeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!selectedStep) {
+            showError('Please select a learning step first');
+            return;
+        }
+
+        const formData = new FormData(challengeForm);
+        const data = {
+            step_data: selectedStep,
+            topic: document.getElementById('topic').value,
+            level: document.getElementById('level').value
+        };
+
+        showLoading('Creating challenge...');
+        hideError();
+
+        fetch('/learning/create-challenge/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                displayChallengeResult(data.challenge);
+                document.getElementById('challenge-result-section').style.display = 'block';
+            } else {
+                showError('Failed to create challenge: ' + data.error);
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showError('Error: ' + error.message);
+        });
+    });
+
+    function displayLearningSteps(steps) {
+        const container = document.getElementById('learning-steps-container');
+        container.innerHTML = '';
+
+        steps.forEach((step, index) => {
+            const stepCard = document.createElement('div');
+            stepCard.className = 'learning-step-card';
+            stepCard.innerHTML = `
+                <div class="step-title">Step ${step.step_number}: ${step.title}</div>
+                <div class="step-description">${step.description}</div>
+                <div class="step-task">
+                    <strong>Practical Task:</strong> ${step.practical_task?.task_description || 'No task specified'}
+                </div>
+            `;
+            
+            stepCard.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.learning-step-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                // Select current step
+                stepCard.classList.add('selected');
+                selectedStep = step;
+                
+                // Update selected step info
+                document.getElementById('selected-step-content').innerHTML = `
+                    <strong>${step.title}</strong><br>
+                    ${step.description}
+                `;
+                
+                // Show challenge creation section
+                document.getElementById('challenge-creation-section').style.display = 'block';
+            });
+            
+            container.appendChild(stepCard);
+        });
+    }
+
+    function displayChallengeResult(challenge) {
+        const container = document.getElementById('challenge-result-content');
+        container.innerHTML = `
+            <div class="challenge-preview">
+                <div class="challenge-title">${challenge.title}</div>
+                <div class="challenge-description">${challenge.description}</div>
+                
+                <div style="margin: 1rem 0;">
+                    <strong style="color: #60efff;">Requirements:</strong>
+                    <ul style="margin-left: 1rem; color: #b0c4de;">
+                        ${challenge.requirements?.map(req => `<li>${req}</li>`).join('') || ''}
+                    </ul>
+                </div>
+                
+                ${challenge.sample_input ? `
+                <div style="margin: 1rem 0;">
+                    <strong style="color: #60efff;">Sample Input:</strong>
+                    <div class="code-block">${challenge.sample_input}</div>
+                </div>
+                ` : ''}
+                
+                ${challenge.sample_output ? `
+                <div style="margin: 1rem 0;">
+                    <strong style="color: #60efff;">Sample Output:</strong>
+                    <div class="code-block">${challenge.sample_output}</div>
+                </div>
+                ` : ''}
+                
+                <div class="challenge-tags">
+                    ${challenge.tags?.map(tag => `<span class="challenge-tag">${tag}</span>`).join('') || ''}
+                </div>
+                
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <a href="${challenge.challenge_url}" class="btn-custom btn-primary-custom" style="display: inline-block; padding: 0.75rem 1.5rem; text-decoration: none;">
+                        View Challenge
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+
+    function showLoading(text) {
+        loadingText.textContent = text;
+        loadingIndicator.style.display = 'block';
+    }
+
+    function hideLoading() {
+        loadingIndicator.style.display = 'none';
+    }
+
+    function showError(message) {
+        errorContent.textContent = message;
+        errorSection.style.display = 'block';
+    }
+
+    function hideError() {
+        errorSection.style.display = 'none';
+    }
+});
+</script>
+{% endblock %} 

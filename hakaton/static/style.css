@@ -83,7 +83,7 @@ body::before {
 }
 
 .nav-links a:hover {
-    color: #60efff;
+    color: #00ff87;
 }
 
 .nav-links a.active {
@@ -132,6 +132,8 @@ body::before {
 .hero-content {
     max-width: 800px;
     z-index: 2;
+    text-align: center;
+    margin: 0 auto;
 }
 
 .main-title {
@@ -147,6 +149,7 @@ body::before {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    text-align: center;
 }
 
 .title-practical {
@@ -300,4 +303,203 @@ body::before {
     .hero-section {
         padding: 1rem;
     }
+}
+
+.auth-container {
+    display: flex;
+    align-items: center;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.auth-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.login-btn {
+    background: transparent;
+    color: #f7006e;
+    border: 1px solid #f7006e;
+}
+
+.login-btn:hover {
+    background: #f7006f3d;
+}
+
+.register-btn {
+    background: #10fd9b;
+    color: #0f2027;
+}
+
+.register-btn:hover {
+    background: #0dce7e;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #ffffff;
+}
+
+.user-name {
+    font-weight: 500;
+}
+
+/* Dropdown styles */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.dropdown-toggle:hover {
+    color: #60efff;
+}
+
+.dropdown-arrow {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.dropdown:hover .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    background: rgba(15, 32, 39, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(96, 239, 255, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(96, 239, 255, 0.1);
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background: rgba(96, 239, 255, 0.1);
+    color: #60efff;
+}
+
+.dropdown-icon {
+    font-size: 1.2rem;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    width: 100%;
+    max-width: 300px;
+    padding: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(15, 32, 39, 0.8);
+    color: white;
+    margin: 0 auto;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #00ff87;
+    box-shadow: 0 0 10px rgba(0, 255, 135, 0.3);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.alert-danger {
+    color: #ff006e;
+    background: rgba(255, 0, 110, 0.1);
+    border: 1px solid rgba(255, 0, 110, 0.3);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+}
+
+.alert-success {
+    color: #00ff87;
+    background: rgba(0, 255, 135, 0.1);
+    border: 1px solid rgba(0, 255, 135, 0.3);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+}
+
+.login-link {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.login-link p {
+    color: #b0c4de;
+    font-size: 0.9rem;
+}
+
+.link-highlight {
+    color: #60efff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.link-highlight:hover {
+    color: #00ff87;
+    text-shadow: 0 0 10px rgba(0, 255, 135, 0.3);
 }
