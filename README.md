@@ -55,18 +55,6 @@
    - Scrie codul soluției
    - Primește feedback detaliat generat de AI
 
-### Pentru Administratori
-
-1. **Accesează panoul de admin**
-   ```
-   http://localhost:8000/admin
-   ```
-
-2. **Gestionează provocările**
-   - Creează, editează sau șterge provocări
-   - Monitorizează submisiile utilizatorilor
-   - Vizualizează statistici
-
 ## 🔧 Configurare Avansată
 
 ### Configurare Producție
